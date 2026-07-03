@@ -1,5 +1,6 @@
 import os
 from typing import Dict, Any
+from pypdf import PdfReader
 from src.backend.parsers.base import BaseParser
 
 class PDFParser(BaseParser):
@@ -8,8 +9,17 @@ class PDFParser(BaseParser):
     """
 
     def parse(self, file_path: str) -> str:
-        """Extracts text from the PDF file."""
-        return ""
+        """Extracts text from the PDF file by reading page by page."""
+        try:
+            reader = PdfReader(file_path)
+            text_parts = []
+            for page in reader.pages:
+                page_text = page.extract_text()
+                if page_text:
+                    text_parts.append(page_text)
+            return "\n".join(text_parts)
+        except Exception as e:
+            raise RuntimeError(f"Failed to parse PDF {file_path}: {str(e)}")
 
     def get_metadata(self, file_path: str) -> Dict[str, Any]:
         """Extracts metadata from the PDF file."""
