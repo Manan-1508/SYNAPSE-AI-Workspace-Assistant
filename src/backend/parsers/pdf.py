@@ -9,15 +9,16 @@ class PDFParser(BaseParser):
     """
 
     def parse(self, file_path: str) -> str:
-        """Extracts text from the PDF file by reading page by page."""
+        """Extracts text from the PDF file by reading page by page with layout markers."""
         try:
             reader = PdfReader(file_path)
             text_parts = []
-            for page in reader.pages:
+            for i, page in enumerate(reader.pages):
                 page_text = page.extract_text()
                 if page_text:
-                    text_parts.append(page_text)
-            return "\n".join(text_parts)
+                    # Append structural page boundary markers
+                    text_parts.append(f"--- PAGE {i + 1} ---\n{page_text}")
+            return "\n\n".join(text_parts)
         except Exception as e:
             raise RuntimeError(f"Failed to parse PDF {file_path}: {str(e)}")
 
