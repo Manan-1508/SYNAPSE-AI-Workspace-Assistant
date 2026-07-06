@@ -7,6 +7,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from src.backend.parsers.text import TextParser
 from src.backend.parsers.pdf import PDFParser
+from src.backend.parsers.docx import DocxParser
 
 def main():
     print("=== Testing BaseParser & TextParser ===")
@@ -91,6 +92,75 @@ def main():
         finally:
             if os.path.exists(mock_pdf_path):
                 os.remove(mock_pdf_path)
+
+    # 4. Test DOCX parsing using Mocking
+    print("\nTesting DOCX Parser via Mocking...")
+    mock_docx_path = "tests/mock_doc.docx"
+    
+    # Setup mock document structures to simulate python-docx behavior
+    mock_doc = MagicMock()
+    
+    # Setup mock paragraphs
+    p1 = MagicMock()
+    p1.text = "Hello from DOCX paragraph 1."
+    p2 = MagicMock()
+    p2.text = "Hello from DOCX paragraph 2."
+    mock_doc.paragraphs = [p1, p2]
+    
+    # Setup mock tables
+    mock_table = MagicMock()
+    
+    row1 = MagicMock()
+    cell_a = MagicMock()
+    cell_a.text = "Header A"
+    cell_b = MagicMock()
+    cell_b.text = "Header B"
+    row1.cells = [cell_a, cell_b]
+    
+    row2 = MagicMock()
+    cell_c = MagicMock()
+    cell_c.text = "Value A"
+    cell_d = MagicMock()
+    cell_d.text = "Value B"
+    row2.cells = [cell_c, cell_d]
+    
+    mock_table.rows = [row1, row2]
+    mock_table.columns = [1, 2]
+    mock_doc.tables = [mock_table]
+    
+    # Setup mock core properties
+    mock_props = MagicMock()
+    mock_props.title = "Word Guide"
+    mock_props.author = "Developer"
+    mock_props.category = "Test"
+    mock_props.comments = "Mock Comment"
+    mock_props.created = None
+    mock_props.modified = None
+    mock_doc.core_properties = mock_props
+    
+    docx_parser = DocxParser()
+    
+    with patch("src.backend.parsers.docx.Document", return_value=mock_doc):
+        # Create a dummy blank file to allow OS size calls
+        with open(mock_docx_path, "w") as f:
+            f.write("")
+            
+        try:
+            docx_content = docx_parser.parse(mock_docx_path)
+            docx_metadata = docx_parser.get_metadata(mock_docx_path)
+            
+            print(f"Content:\n{docx_content}")
+            print(f"Metadata: {docx_metadata}")
+            
+            assert "paragraph 1" in docx_content
+            assert "| Header A | Header B |" in docx_content
+            assert "|---|---|" in docx_content
+            assert docx_metadata["title"] == "Word Guide"
+            assert docx_metadata["author"] == "Developer"
+            assert docx_metadata["category"] == "Test"
+        finally:
+            if os.path.exists(mock_docx_path):
+                os.remove(mock_docx_path)
 
     print("\n=== All parser unit tests passed! ===")
 
