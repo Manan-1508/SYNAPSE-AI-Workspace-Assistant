@@ -9,11 +9,30 @@ class DocxParser(BaseParser):
     """
 
     def parse(self, file_path: str) -> str:
-        """Extracts text from the Word document paragraphs."""
+        """Extracts text from paragraphs and formats tables with markdown pipe formatting."""
         try:
             doc = Document(file_path)
-            paragraphs_text = [p.text for p in doc.paragraphs if p.text.strip()]
-            return "\n\n".join(paragraphs_text)
+            content_parts = []
+            
+            # Extract paragraphs
+            for p in doc.paragraphs:
+                if p.text.strip():
+                    content_parts.append(p.text)
+                    
+            # Extract tables and format with pipe separators
+            for table in doc.tables:
+                table_lines = []
+                for row in table.rows:
+                    cells_text = [cell.text.replace("\n", " ").strip() for cell in row.cells]
+                    table_lines.append(f"| {' | '.join(cells_text)} |")
+                
+                if table_lines and len(table.columns) > 0:
+                    # Construct simple Markdown table divider line
+                    header_divider = f"|{'|'.join(['---' for _ in range(len(table.columns))])}|"
+                    table_lines.insert(1, header_divider)
+                    content_parts.append("\n".join(table_lines))
+                    
+            return "\n\n".join(content_parts)
         except Exception as e:
             raise RuntimeError(f"Failed to parse Word document {file_path}: {str(e)}")
 
