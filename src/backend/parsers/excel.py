@@ -9,7 +9,7 @@ class ExcelParser(BaseParser):
     """
 
     def parse(self, file_path: str) -> str:
-        """Extracts text from Excel workbooks or CSV files."""
+        """Extracts text from Excel workbooks or CSV files, formatting as clean token-efficient CSV structures."""
         try:
             ext = os.path.splitext(file_path)[1].lower()
             if ext in [".xlsx", ".xls"]:
@@ -18,12 +18,15 @@ class ExcelParser(BaseParser):
                 sheets_text = []
                 for sheet_name in excel_file.sheet_names:
                     df = pd.read_excel(file_path, sheet_name=sheet_name)
-                    # Convert dataframe to string representation
-                    sheets_text.append(f"--- SHEET: {sheet_name} ---\n{df.to_string(index=False)}")
+                    # Clean empty rows and columns to save token window budgets
+                    df = df.dropna(how="all").dropna(axis=1, how="all")
+                    csv_data = df.to_csv(index=False)
+                    sheets_text.append(f"--- SHEET: {sheet_name} ---\n{csv_data.strip()}")
                 return "\n\n".join(sheets_text)
             elif ext == ".csv":
                 df = pd.read_csv(file_path)
-                return df.to_string(index=False)
+                df = df.dropna(how="all").dropna(axis=1, how="all")
+                return df.to_csv(index=False).strip()
             return ""
         except Exception as e:
             raise RuntimeError(f"Failed to parse spreadsheet {file_path}: {str(e)}")
