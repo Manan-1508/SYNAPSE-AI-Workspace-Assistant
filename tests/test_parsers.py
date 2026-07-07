@@ -1,5 +1,6 @@
 import os
 import sys
+import pandas as pd
 from unittest.mock import MagicMock, patch
 
 # Add project root directory to path to enable direct imports
@@ -8,6 +9,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from src.backend.parsers.text import TextParser
 from src.backend.parsers.pdf import PDFParser
 from src.backend.parsers.docx import DocxParser
+from src.backend.parsers.excel import ExcelParser
 
 def main():
     print("=== Testing BaseParser & TextParser ===")
@@ -161,6 +163,64 @@ def main():
         finally:
             if os.path.exists(mock_docx_path):
                 os.remove(mock_docx_path)
+
+    # 5. Test Excel & CSV parsing using Mocking
+    print("\nTesting Excel & CSV Parser via Mocking...")
+    mock_excel_path = "tests/mock_sheet.xlsx"
+    mock_csv_path = "tests/mock_sheet.csv"
+    
+    excel_parser = ExcelParser()
+    
+    # Setup mock dataframes
+    mock_df_excel = pd.DataFrame({
+        "Product": ["SYNAPSE Pro", "SYNAPSE Free"],
+        "Price": [99.99, 0.00]
+    })
+    
+    mock_df_csv = pd.DataFrame({
+        "Name": ["Alice", "Bob"],
+        "Role": ["Admin", "User"]
+    })
+    
+    # Mock pd.ExcelFile
+    mock_excel_file = MagicMock()
+    mock_excel_file.sheet_names = ["Pricing"]
+    
+    with patch("pandas.ExcelFile", return_value=mock_excel_file), \
+         patch("pandas.read_excel", return_value=mock_df_excel), \
+         patch("pandas.read_csv", return_value=mock_df_csv):
+         
+        # Create dummy blank files to allow OS size calls
+        for path in [mock_excel_path, mock_csv_path]:
+            with open(path, "w") as f:
+                f.write("")
+                
+        try:
+            # Verify Excel parsing
+            excel_content = excel_parser.parse(mock_excel_path)
+            excel_metadata = excel_parser.get_metadata(mock_excel_path)
+            
+            print(f"Excel Content:\n{excel_content}")
+            print(f"Excel Metadata: {excel_metadata}")
+            
+            assert "Pricing" in excel_content
+            assert "SYNAPSE Pro" in excel_content
+            assert excel_metadata["file_type"] == "xlsx"
+            
+            # Verify CSV parsing
+            csv_content = excel_parser.parse(mock_csv_path)
+            csv_metadata = excel_parser.get_metadata(mock_csv_path)
+            
+            print(f"CSV Content:\n{csv_content}")
+            print(f"CSV Metadata: {csv_metadata}")
+            
+            assert "Alice" in csv_content
+            assert "Admin" in csv_content
+            assert csv_metadata["file_type"] == "csv"
+        finally:
+            for path in [mock_excel_path, mock_csv_path]:
+                if os.path.exists(path):
+                    os.remove(path)
 
     print("\n=== All parser unit tests passed! ===")
 
