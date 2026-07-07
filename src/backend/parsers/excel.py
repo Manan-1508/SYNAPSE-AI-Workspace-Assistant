@@ -9,7 +9,7 @@ class ExcelParser(BaseParser):
     """
 
     def parse(self, file_path: str) -> str:
-        """Extracts text sheet-by-sheet from Excel files."""
+        """Extracts text from Excel workbooks or CSV files."""
         try:
             ext = os.path.splitext(file_path)[1].lower()
             if ext in [".xlsx", ".xls"]:
@@ -21,9 +21,12 @@ class ExcelParser(BaseParser):
                     # Convert dataframe to string representation
                     sheets_text.append(f"--- SHEET: {sheet_name} ---\n{df.to_string(index=False)}")
                 return "\n\n".join(sheets_text)
+            elif ext == ".csv":
+                df = pd.read_csv(file_path)
+                return df.to_string(index=False)
             return ""
         except Exception as e:
-            raise RuntimeError(f"Failed to parse Excel workbook {file_path}: {str(e)}")
+            raise RuntimeError(f"Failed to parse spreadsheet {file_path}: {str(e)}")
 
     def get_metadata(self, file_path: str) -> Dict[str, Any]:
         """Extracts basic metadata from the spreadsheet file."""
