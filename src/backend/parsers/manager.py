@@ -22,3 +22,5 @@ class ParserManager:
             ".xls": ExcelParser(),
             ".csv": ExcelParser()
         }
+        # Fallback parser for unsupported extensions (defaults to plain text)
+        self._default_parser = TextParser()
