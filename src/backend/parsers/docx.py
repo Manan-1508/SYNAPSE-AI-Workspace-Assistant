@@ -23,7 +23,7 @@ class DocxParser(BaseParser):
             for table in doc.tables:
                 table_lines = []
                 for row in table.rows:
-                    cells_text = [cell.text.replace("\n", " ").strip() for cell in row.cells]
+                    cells_text = [cell.text.strip().replace("\n", " ") for cell in row.cells]
                     table_lines.append(f"| {' | '.join(cells_text)} |")
                 
                 if table_lines and len(table.columns) > 0:
