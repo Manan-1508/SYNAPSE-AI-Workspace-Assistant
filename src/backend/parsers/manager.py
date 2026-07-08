@@ -24,3 +24,13 @@ class ParserManager:
         }
         # Fallback parser for unsupported extensions (defaults to plain text)
         self._default_parser = TextParser()
+
+    def get_parser(self, file_path: str) -> BaseParser:
+        """Retrieves the parser mapped to the file's extension, falling back to the text parser."""
+        ext = os.path.splitext(file_path)[1].lower()
+        return self._parsers.get(ext, self._default_parser)
+
+    def is_supported(self, file_path: str) -> bool:
+        """Returns True if the file type is natively supported."""
+        ext = os.path.splitext(file_path)[1].lower()
+        return ext in self._parsers
