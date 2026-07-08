@@ -94,3 +94,6 @@ def main():
         os.remove(csv_path)
         
     print("\n=== All unified verification checks passed successfully ===")
+
+if __name__ == "__main__":
+    main()
