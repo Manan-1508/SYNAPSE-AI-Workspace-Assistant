@@ -17,7 +17,7 @@ class ExcelParser(BaseParser):
                 excel_file = pd.ExcelFile(file_path)
                 sheets_text = []
                 for sheet_name in excel_file.sheet_names:
-                    df = pd.read_excel(file_path, sheet_name=sheet_name)
+                    df = pd.read_excel(excel_file, sheet_name=sheet_name)
                     # Clean empty rows and columns to save token window budgets
                     df = df.dropna(how="all").dropna(axis=1, how="all")
                     csv_data = df.to_csv(index=False)
