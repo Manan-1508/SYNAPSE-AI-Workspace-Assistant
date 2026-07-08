@@ -9,15 +9,12 @@ class TextParser(BaseParser):
     """
 
     def parse(self, file_path: str) -> str:
-        """Reads document content with automatic encoding fallback."""
-        encodings = ["utf-8", "cp1252", "latin-1"]
-        
-        for encoding in encodings:
+        for encoding in ["utf-8", "cp1252", "latin-1"]:
             try:
                 with open(file_path, "r", encoding=encoding) as f:
                     return f.read()
             except UnicodeDecodeError:
-                continue
+                pass
                 
         # Final fallback: read with character replacement handler
         with open(file_path, "r", encoding="utf-8", errors="replace") as f:
