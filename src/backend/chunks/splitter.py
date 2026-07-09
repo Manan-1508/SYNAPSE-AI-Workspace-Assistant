@@ -9,7 +9,7 @@ class SemanticChunker:
         self.chunk_overlap = chunk_overlap
 
     def split_text(self, text: str) -> List[str]:
-        """Splits input text into fixed-size chunks by character length limits."""
+        """Splits input text into chunks, using a sliding window to incorporate character overlap."""
         if not text:
             return []
             
@@ -18,12 +18,17 @@ class SemanticChunker:
         text_len = len(text)
         
         while start < text_len:
-            # Squeeze chunk to defined size
             end = start + self.chunk_size
             chunk = text[start:end]
             chunks.append(chunk)
             
-            # Slide step forward without overlap for now
-            start = end
+            # Slide step forward, stepping back by overlap characters
+            start = end - self.chunk_overlap
             
+            # Guard conditions to prevent infinite loops on boundary errors
+            if self.chunk_overlap >= self.chunk_size:
+                start = end
+            if end >= text_len:
+                break
+                
         return chunks
