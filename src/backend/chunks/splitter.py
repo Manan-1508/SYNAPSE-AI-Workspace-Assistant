@@ -13,8 +13,10 @@ class SemanticChunker:
         self.separators = ["\n\n", "\n", ". ", "? ", "! ", " ", ""]
 
     def split_text(self, text: str) -> List[str]:
-        """Splits input text into semantic chunks recursively."""
-        return self._recursive_split(text, self.separators)
+        """Splits input text into semantic chunks recursively, filtering out empty values."""
+        raw_chunks = self._recursive_split(text, self.separators)
+        # Strip and filter empty chunks
+        return [c.strip() for c in raw_chunks if c.strip()]
 
     def _get_overlap_prefix(self, text: str) -> str:
         """Extracts a suffix from the text that fits within the chunk_overlap size limit."""
