@@ -49,4 +49,22 @@ class IndexingService:
             
         # Register file entry in SQLite (wipes old status/errors)
         self.db_mgr.register_file(file_path, file_hash, file_size)
-        return {"status": "registered", "file_path": file_path}
+        self.db_mgr.update_file_status(file_path, "indexing")
+        
+        try:
+            # 1. Parse document text content
+            parser = self.parser_mgr.get_parser(file_path)
+            content = parser.parse(file_path)
+            
+            # 2. Segment document text into semantic chunks
+            chunks = self.chunker.split_text(content)
+            
+            # 3. Clean existing vectors from database to avoid duplicates
+            self.vector_mgr.delete_by_file(file_path)
+            
+            # 4. Generate embeddings and index chunks in ChromaDB
+            self.vector_mgr.add_chunks(file_path, chunks)
+            
+            return {"status": "indexing_completed", "chunk_count": len(chunks), "file_path": file_path}
+        except Exception as e:
+            return {"status": "error", "message": str(e), "file_path": file_path}
