@@ -21,3 +21,14 @@ class IndexingService:
         self.vector_mgr = vector_mgr
         self.parser_mgr = parser_mgr
         self.chunker = chunker
+
+    def _calculate_hash(self, file_path: str) -> str:
+        """Computes the SHA-256 hash of a local file to check for content updates."""
+        hasher = hashlib.sha256()
+        try:
+            with open(file_path, "rb") as f:
+                while chunk := f.read(8192):
+                    hasher.update(chunk)
+            return hasher.hexdigest()
+        except Exception as e:
+            raise IOError(f"Failed to read file hash for {file_path}: {str(e)}")
