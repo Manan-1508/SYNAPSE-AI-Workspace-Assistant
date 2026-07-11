@@ -60,10 +60,9 @@ class VectorStoreManager:
         except Exception as e:
             raise RuntimeError(f"Failed to delete vectors for {file_path}: {str(e)}")
 
-    def search(self, query: str, limit: int = 5) -> Dict[str, Any]:
-        """Searches the vector store for semantic matches to the query text."""
+    def search(self, query: str, limit: int = 5) -> List[Dict[str, Any]]:
+        """Searches the vector store, returning a formatted list of matches with similarity scores."""
         model = self._get_model()
-        # Generate query embedding representation
         query_embedding = model.encode(query, convert_to_numpy=True).tolist()
         
         try:
@@ -71,6 +70,26 @@ class VectorStoreManager:
                 query_embeddings=[query_embedding],
                 n_results=limit
             )
-            return results
+            
+            formatted = []
+            if not results or not results["ids"] or len(results["ids"]) == 0:
+                return formatted
+                
+            ids = results["ids"][0]
+            docs = results["documents"][0]
+            metadatas = results["metadatas"][0]
+            distances = results["distances"][0] if "distances" in results and results["distances"] else [0.0] * len(ids)
+            
+            for idx in range(len(ids)):
+                # Convert cosine distance to a similarity score between 0.0 and 1.0
+                similarity_score = 1.0 - distances[idx]
+                formatted.append({
+                    "id": ids[idx],
+                    "text": docs[idx],
+                    "metadata": metadatas[idx],
+                    "score": round(similarity_score, 4)
+                })
+                
+            return formatted
         except Exception as e:
             raise RuntimeError(f"Search query failed: {str(e)}")
