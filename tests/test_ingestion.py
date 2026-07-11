@@ -92,3 +92,6 @@ def main():
                     pass
         if os.path.exists(test_chroma):
             shutil.rmtree(test_chroma, ignore_errors=True)
+
+if __name__ == "__main__":
+    main()
