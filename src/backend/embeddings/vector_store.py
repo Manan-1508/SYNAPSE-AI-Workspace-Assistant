@@ -28,6 +28,15 @@ class VectorStoreManager:
             self._model = SentenceTransformer(self.model_name, device="cpu")
         return self._model
 
+    def add_chunks(self, file_path: str, chunks: List[str]):
+        """Generates embeddings for text chunks and adds them to the vector store."""
+        if not chunks:
+            return
+            
+        model = self._get_model()
+        # Generate numerical vector representations for each text segment
+        embeddings = model.encode(chunks, convert_to_numpy=True).tolist()
+
     def delete_by_file(self, file_path: str):
         """Deletes all chunks associated with a specific file path from the vector store."""
         try:
