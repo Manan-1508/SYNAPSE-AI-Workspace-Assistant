@@ -72,3 +72,23 @@ class IndexingService:
             # Commit status as failed in SQLite DB on error
             self.db_mgr.update_file_status(file_path, "failed", error_message=str(e))
             return {"status": "error", "message": str(e), "file_path": file_path}
+
+    def index_directory(self, dir_path: str) -> List[Dict[str, Any]]:
+        """Recursively walks a directory and indexes all supported documents."""
+        dir_path = os.path.abspath(dir_path)
+        results = []
+        if not os.path.isdir(dir_path):
+            return [{"status": "error", "message": f"Not a directory: {dir_path}", "file_path": dir_path}]
+            
+        # Walk directories recursively
+        for root, _, files in os.walk(dir_path):
+            for file in files:
+                full_path = os.path.join(root, file)
+                # Parse file if its format type is supported
+                if self.parser_mgr.is_supported(full_path):
+                    try:
+                        res = self.index_file(full_path)
+                        results.append(res)
+                    except Exception as e:
+                        results.append({"status": "error", "message": str(e), "file_path": full_path})
+        return results
