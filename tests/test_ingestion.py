@@ -60,6 +60,27 @@ def main():
         v_count = vector_mgr.collection.count()
         print(f"Collection count: {v_count}, Total chunk count: {total_chunks}")
         assert v_count == total_chunks
+
+        # Run semantic search queries
+        print("\nRunning semantic queries...")
+        matches = vector_mgr.search(query="SQLite database indexes", limit=2)
+        print(f"Query matches: {matches}")
+        assert len(matches) > 0
+        assert "sqlite" in matches[0]["text"].lower()
+        assert 0.0 <= matches[0]["score"] <= 1.0
+        
+        # Test file path filtering scope
+        filtered_matches = vector_mgr.search(
+            query="cosine similarity", 
+            limit=2, 
+            file_path=mock_md
+        )
+        print(f"Filtered matches: {filtered_matches}")
+        for match in filtered_matches:
+            # Resolve to absolute path to verify
+            assert os.path.abspath(match["metadata"]["file_path"]) == os.path.abspath(mock_md)
+            
+        print("\n=== Integration Ingestion & Search verification passed successfully ===")
         
     finally:
         # Clean up files
