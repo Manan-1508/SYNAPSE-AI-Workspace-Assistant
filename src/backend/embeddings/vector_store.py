@@ -1,13 +1,18 @@
 import os
 from typing import List, Dict, Any, Optional
 import chromadb
+from sentence_transformers import SentenceTransformer
 
 class VectorStoreManager:
     """
     Manages local document embeddings using ChromaDB vector database.
+    Integrates SentenceTransformers for encoding text chunks locally.
     """
-    def __init__(self, persist_dir: str = "src/backend/data/chroma"):
+    def __init__(self, persist_dir: str = "src/backend/data/chroma", model_name: str = "all-MiniLM-L6-v2"):
         self.persist_dir = os.path.abspath(persist_dir)
+        self.model_name = model_name
+        self._model: Optional[SentenceTransformer] = None
+        
         # Initialize persistent ChromaDB client
         self.client = chromadb.PersistentClient(path=self.persist_dir)
         # Get or create the collection with cosine distance similarity configuration
