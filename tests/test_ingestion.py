@@ -36,3 +36,38 @@ def main():
     chunker = SemanticChunker(chunk_size=150, chunk_overlap=20)
     
     service = IndexingService(db_mgr, vector_mgr, parser_mgr, chunker)
+    
+    # Write mock content to disk
+    with open(mock_txt, "w", encoding="utf-8") as f:
+        f.write("SYNAPSE is a local AI coding assistant.\nIt uses SQLite to index document files.\n")
+    with open(mock_md, "w", encoding="utf-8") as f:
+        f.write("Markdown document details:\nChromaDB collections run cosine similarity.\n")
+        
+    try:
+        # Index both documents
+        res1 = service.index_file(mock_txt)
+        res2 = service.index_file(mock_md)
+        assert res1["status"] == "success"
+        assert res2["status"] == "success"
+        
+        # Verify SQLite registration counts
+        files = db_mgr.list_files()
+        print(f"Registered files: {len(files)}")
+        assert len(files) == 2
+        
+        # Verify ChromaDB counts
+        total_chunks = sum(f["chunk_count"] for f in files)
+        v_count = vector_mgr.collection.count()
+        print(f"Collection count: {v_count}, Total chunk count: {total_chunks}")
+        assert v_count == total_chunks
+        
+    finally:
+        # Clean up files
+        for path in [test_db, test_db + "-shm", test_db + "-wal", mock_txt, mock_md]:
+            if os.path.exists(path):
+                try:
+                    os.remove(path)
+                except OSError:
+                    pass
+        if os.path.exists(test_chroma):
+            shutil.rmtree(test_chroma, ignore_errors=True)
