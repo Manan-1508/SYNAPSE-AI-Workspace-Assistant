@@ -60,15 +60,20 @@ class VectorStoreManager:
         except Exception as e:
             raise RuntimeError(f"Failed to delete vectors for {file_path}: {str(e)}")
 
-    def search(self, query: str, limit: int = 5) -> List[Dict[str, Any]]:
-        """Searches the vector store, returning a formatted list of matches with similarity scores."""
+    def search(self, query: str, limit: int = 5, file_path: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Searches the vector store, supporting optional metadata filters by file path."""
         model = self._get_model()
         query_embedding = model.encode(query, convert_to_numpy=True).tolist()
         
+        where_filter = {}
+        if file_path:
+            where_filter["file_path"] = os.path.abspath(file_path)
+            
         try:
             results = self.collection.query(
                 query_embeddings=[query_embedding],
-                n_results=limit
+                n_results=limit,
+                where=where_filter if where_filter else None
             )
             
             formatted = []
