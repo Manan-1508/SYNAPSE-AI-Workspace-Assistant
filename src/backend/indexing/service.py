@@ -65,6 +65,10 @@ class IndexingService:
             # 4. Generate embeddings and index chunks in ChromaDB
             self.vector_mgr.add_chunks(file_path, chunks)
             
-            return {"status": "indexing_completed", "chunk_count": len(chunks), "file_path": file_path}
+            # 5. Commit status as indexed in SQLite DB on success
+            self.db_mgr.update_file_status(file_path, "indexed", chunk_count=len(chunks))
+            return {"status": "success", "chunk_count": len(chunks), "file_path": file_path}
         except Exception as e:
+            # Commit status as failed in SQLite DB on error
+            self.db_mgr.update_file_status(file_path, "failed", error_message=str(e))
             return {"status": "error", "message": str(e), "file_path": file_path}
