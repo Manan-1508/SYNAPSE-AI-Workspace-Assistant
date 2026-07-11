@@ -39,5 +39,17 @@ def main():
         "We want to ensure that paragraphs split cleanly without cutting sentences."
     )
 
+    # Split on paragraph boundaries (chunk_size=160, chunk_overlap=0)
+    rec_chunker = SemanticChunker(chunk_size=160, chunk_overlap=0)
+    rec_chunks = rec_chunker.split_text(paragraph_text)
+    
+    print("Recursive Paragraph Chunks:")
+    for i, chunk in enumerate(rec_chunks):
+        print(f"  Chunk {i + 1}: len={len(chunk)}: '{chunk}'")
+        
+    assert len(rec_chunks) == 2
+    assert "paragraph number one" in rec_chunks[0]
+    assert "paragraph number two" in rec_chunks[1]
+
 if __name__ == "__main__":
     main()
