@@ -31,5 +31,13 @@ def main():
     
     print("[+] Fixed-size character splitting with overlaps verified successfully.")
 
+    # 2. Test Recursive Semantic Splitting Mock Variables
+    print("\n=== Testing Recursive Semantic Splitting ===")
+    paragraph_text = (
+        "This is paragraph number one. It contains two sentences.\n\n"
+        "Here is paragraph number two. It is slightly longer and contains details. "
+        "We want to ensure that paragraphs split cleanly without cutting sentences."
+    )
+
 if __name__ == "__main__":
     main()
