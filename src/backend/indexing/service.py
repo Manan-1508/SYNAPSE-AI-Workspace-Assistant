@@ -32,3 +32,21 @@ class IndexingService:
             return hasher.hexdigest()
         except Exception as e:
             raise IOError(f"Failed to read file hash for {file_path}: {str(e)}")
+
+    def index_file(self, file_path: str) -> Dict[str, Any]:
+        """Indexes a single file by parsing, chunking, and encoding its content."""
+        file_path = os.path.abspath(file_path)
+        if not os.path.exists(file_path):
+            return {"status": "error", "message": f"File not found: {file_path}", "file_path": file_path}
+            
+        file_size = os.path.getsize(file_path)
+        file_hash = self._calculate_hash(file_path)
+        
+        # Check for incremental updates: skip if hash and status are unchanged
+        existing = self.db_mgr.get_file(file_path)
+        if existing and existing["file_hash"] == file_hash and existing["status"] == "indexed":
+            return {"status": "skipped", "message": "File is already indexed and up to date.", "file_path": file_path}
+            
+        # Register file entry in SQLite (wipes old status/errors)
+        self.db_mgr.register_file(file_path, file_hash, file_size)
+        return {"status": "registered", "file_path": file_path}
