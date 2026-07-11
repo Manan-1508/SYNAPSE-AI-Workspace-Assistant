@@ -10,7 +10,8 @@ class VectorStoreManager:
         self.persist_dir = os.path.abspath(persist_dir)
         # Initialize persistent ChromaDB client
         self.client = chromadb.PersistentClient(path=self.persist_dir)
-        # Get or create the workspace documents collection
+        # Get or create the collection with cosine distance similarity configuration
         self.collection = self.client.get_or_create_collection(
-            name="workspace_documents"
+            name="workspace_documents",
+            metadata={"hnsw:space": "cosine"}
         )
