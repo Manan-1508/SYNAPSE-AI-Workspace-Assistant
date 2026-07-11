@@ -36,6 +36,20 @@ class VectorStoreManager:
         model = self._get_model()
         # Generate numerical vector representations for each text segment
         embeddings = model.encode(chunks, convert_to_numpy=True).tolist()
+        
+        # Construct unique Chroma IDs and matching metadata trackers
+        ids = [f"{os.path.basename(file_path)}_{i}" for i in range(len(chunks))]
+        metadatas = [{"file_path": file_path, "chunk_index": i} for i in range(len(chunks))]
+        
+        try:
+            self.collection.add(
+                ids=ids,
+                embeddings=embeddings,
+                metadatas=metadatas,
+                documents=chunks
+            )
+        except Exception as e:
+            raise RuntimeError(f"Failed to add document chunks: {str(e)}")
 
     def delete_by_file(self, file_path: str):
         """Deletes all chunks associated with a specific file path from the vector store."""
