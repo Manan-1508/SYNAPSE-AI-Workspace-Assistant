@@ -59,3 +59,18 @@ class VectorStoreManager:
             )
         except Exception as e:
             raise RuntimeError(f"Failed to delete vectors for {file_path}: {str(e)}")
+
+    def search(self, query: str, limit: int = 5) -> Dict[str, Any]:
+        """Searches the vector store for semantic matches to the query text."""
+        model = self._get_model()
+        # Generate query embedding representation
+        query_embedding = model.encode(query, convert_to_numpy=True).tolist()
+        
+        try:
+            results = self.collection.query(
+                query_embeddings=[query_embedding],
+                n_results=limit
+            )
+            return results
+        except Exception as e:
+            raise RuntimeError(f"Search query failed: {str(e)}")
