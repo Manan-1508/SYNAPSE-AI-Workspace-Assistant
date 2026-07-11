@@ -15,6 +15,13 @@ class SemanticChunker:
         """Splits input text into semantic chunks recursively."""
         return self._recursive_split(text, self.separators)
 
+    def _get_overlap_prefix(self, text: str) -> str:
+        """Extracts a suffix from the text that fits within the chunk_overlap size limit."""
+        if not text or self.chunk_overlap <= 0:
+            return ""
+        # Slice characters from the end of the text
+        return text[-self.chunk_overlap:]
+
     def _recursive_split(self, text: str, separators: List[str]) -> List[str]:
         """Recursively splits text based on hierarchical delimiters."""
         text = text.strip()
@@ -52,7 +59,12 @@ class SemanticChunker:
             else:
                 if current_chunk:
                     chunks.append(current_chunk.strip())
-                current_chunk = split
+                # Start new chunk with overlap suffix from the previous chunk
+                overlap_prefix = self._get_overlap_prefix(current_chunk)
+                if overlap_prefix:
+                    current_chunk = overlap_prefix + (separator if not overlap_prefix.endswith(separator) else "") + split
+                else:
+                    current_chunk = split
                 
         if current_chunk:
             chunks.append(current_chunk.strip())
