@@ -21,6 +21,13 @@ class VectorStoreManager:
             metadata={"hnsw:space": "cosine"}
         )
 
+    def _get_model(self) -> SentenceTransformer:
+        """Lazy loads the SentenceTransformer model on the CPU for safety."""
+        if self._model is None:
+            # Force CPU execution to prevent Torch VRAM allocations on integrated GPUs
+            self._model = SentenceTransformer(self.model_name, device="cpu")
+        return self._model
+
     def delete_by_file(self, file_path: str):
         """Deletes all chunks associated with a specific file path from the vector store."""
         try:
