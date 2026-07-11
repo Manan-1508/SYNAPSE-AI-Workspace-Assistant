@@ -15,3 +15,12 @@ class VectorStoreManager:
             name="workspace_documents",
             metadata={"hnsw:space": "cosine"}
         )
+
+    def delete_by_file(self, file_path: str):
+        """Deletes all chunks associated with a specific file path from the vector store."""
+        try:
+            self.collection.delete(
+                where={"file_path": file_path}
+            )
+        except Exception as e:
+            raise RuntimeError(f"Failed to delete vectors for {file_path}: {str(e)}")
