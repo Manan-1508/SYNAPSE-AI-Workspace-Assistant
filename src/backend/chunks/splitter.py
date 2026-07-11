@@ -43,8 +43,11 @@ class SemanticChunker:
             
         separator = separators[0]
         
+        # Handle empty separator character-level splitting
+        if separator == "":
+            splits = list(text)
         # Use lookbehind assertions for sentence boundary splitting to retain punctuation
-        if separator in [". ", "? ", "! "]:
+        elif separator in [". ", "? ", "! "]:
             escaped_sep = re.escape(separator.strip())
             pattern = rf"(?<={escaped_sep})\s+"
             splits = re.split(pattern, text)

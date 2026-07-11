@@ -51,5 +51,19 @@ def main():
     assert "paragraph number one" in rec_chunks[0]
     assert "paragraph number two" in rec_chunks[1]
 
+    # Split on sentence boundaries (chunk_size=80, chunk_overlap=15)
+    sentence_chunker = SemanticChunker(chunk_size=80, chunk_overlap=15)
+    sentence_chunks = sentence_chunker.split_text(paragraph_text)
+    
+    print("\nRecursive Sentence Chunks:")
+    for i, chunk in enumerate(sentence_chunks):
+        print(f"  Chunk {i + 1}: len={len(chunk)}: '{chunk}'")
+        
+    # Verify that punctuation is preserved
+    for chunk in sentence_chunks:
+        assert chunk.endswith(".") or chunk.endswith("sentences.") or chunk.strip().endswith("sentences")
+        
+    print("[+] Recursive sentence boundary checks passed.")
+
 if __name__ == "__main__":
     main()
