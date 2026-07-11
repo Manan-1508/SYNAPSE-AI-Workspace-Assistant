@@ -1,3 +1,4 @@
+import re
 from typing import List
 
 class SemanticChunker:
@@ -39,7 +40,14 @@ class SemanticChunker:
             return chunks
             
         separator = separators[0]
-        splits = text.split(separator)
+        
+        # Use lookbehind assertions for sentence boundary splitting to retain punctuation
+        if separator in [". ", "? ", "! "]:
+            escaped_sep = re.escape(separator.strip())
+            pattern = rf"(?<={escaped_sep})\s+"
+            splits = re.split(pattern, text)
+        else:
+            splits = text.split(separator)
         
         chunks = []
         current_chunk = ""
@@ -54,15 +62,18 @@ class SemanticChunker:
                     current_chunk = ""
                 # Recursively split large segments with the next separator
                 chunks.extend(self._recursive_split(split, separators[1:]))
-            elif len(current_chunk) + len(split) + len(separator) <= self.chunk_size:
-                current_chunk += (separator if current_chunk else "") + split
+            elif len(current_chunk) + len(split) + (len(separator) if separator not in [". ", "? ", "! "] else 1) <= self.chunk_size:
+                # Add back space separator for sentence endings, otherwise standard separator
+                sep_to_add = " " if separator in [". ", "? ", "! "] else separator
+                current_chunk += (sep_to_add if current_chunk else "") + split
             else:
                 if current_chunk:
                     chunks.append(current_chunk.strip())
                 # Start new chunk with overlap suffix from the previous chunk
                 overlap_prefix = self._get_overlap_prefix(current_chunk)
+                sep_to_add = " " if separator in [". ", "? ", "! "] else separator
                 if overlap_prefix:
-                    current_chunk = overlap_prefix + (separator if not overlap_prefix.endswith(separator) else "") + split
+                    current_chunk = overlap_prefix + (sep_to_add if not overlap_prefix.endswith(sep_to_add) else "") + split
                 else:
                     current_chunk = split
                 
