@@ -66,6 +66,12 @@ class DatabaseManager:
                     FOREIGN KEY (session_id) REFERENCES chat_sessions(id) ON DELETE CASCADE
                 );
             """)
+
+            # Create index for session ID lookups
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_chat_messages_session_id 
+                ON chat_messages(session_id);
+            """)
             conn.commit()
 
     # --- FILE CRUD OPERATIONS ---
